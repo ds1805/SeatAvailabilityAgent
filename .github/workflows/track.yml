@@ -43,7 +43,7 @@ jobs:
           QUOTA: "GN"
           # Copy from the RapidAPI code snippet if different
           RAPIDAPI_HOST: "irctc1.p.rapidapi.com"
-          API_PATH: "/api/v1/checkSeatAvailability"
+          API_PATH: "/api/v2/checkSeatAvailability"
           SEND_TEST: ${{ github.event.inputs.send_test }}
         run: python tracker.py
 
