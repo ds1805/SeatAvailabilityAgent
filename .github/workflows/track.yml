@@ -2,7 +2,7 @@ name: Train seat tracker
 
 on:
   schedule:
-    - cron: "*/45 * * * *"   # every 30 minutes; change to "0 * * * *" for hourly
+  - cron: "0 6 */2 * *"   # every 2 days at 11:30 AM IST
   workflow_dispatch:
     inputs:
       send_test:
