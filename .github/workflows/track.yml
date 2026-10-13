@@ -1,0 +1,55 @@
+name: Train seat tracker
+
+on:
+  schedule:
+    - cron: "*/45 * * * *"   # every 30 minutes; change to "0 * * * *" for hourly
+  workflow_dispatch:
+    inputs:
+      send_test:
+        description: "Send a test email"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: train-tracker
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check seats and send alerts
+        env:
+          # Secrets (set in repo Settings > Secrets and variables > Actions)
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_TO: ${{ secrets.ALERT_TO }}
+          # Your train details: edit these
+          TRAIN_NO: "20497"
+          FROM_STATION: "BPL"        # e.g. station code you board at
+          TO_STATION: "CUR"
+          JOURNEY_DATE: "2026-10-29"        # YYYY-MM-DD, e.g. 2026-10-25
+          TRAVEL_CLASS: "3A"
+          QUOTA: "GN"
+          # Copy from the RapidAPI code snippet if different
+          RAPIDAPI_HOST: "irctc1.p.rapidapi.com"
+          API_PATH: "/api/v1/checkSeatAvailability"
+          SEND_TEST: ${{ github.event.inputs.send_test }}
+        run: python tracker.py
+
+      - name: Save alert state
+        run: |
+          git config user.name "train-tracker-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state.json
+          git diff --staged --quiet || (git commit -m "Update state" && git push)
